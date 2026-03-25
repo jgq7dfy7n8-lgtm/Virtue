@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VIRTUE - Daily Practice</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+```
+body {
+  background: #0a0a0a;
+  color: #f5f5f5;
+  font-family: 'Crimson Text', serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+```
+
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function StoicismApp() {
+      const [tab, setTab] = useState('daily');
+      const [reflectionText, setReflectionText] = useState('');
+      const [trackedDays, setTrackedDays] = useState([]);
+      const [selectedTeaching, setSelectedTeaching] = useState(null);
+
+      // Load persisted data on mount
+      useEffect(() => {
+        try {
+          const saved = localStorage.getItem('stoicData');
+          if (saved) {
+            const data = JSON.parse(saved);
+            setTrackedDays(data.trackedDays || []);
+            setReflectionText(data.reflection || '');
+          }
+        } catch (e) {
+          console.log('Storage read error:', e);
+        }
+      }, []);
+
+      // Persist data
+      useEffect(() => {
+        try {
+          localStorage.setItem('stoicData', JSON.stringify({
+            trackedDays,
+            reflection: reflectionText,
+          }));
+        } catch (e) {
+          console.log('Storage write error:', e);
+        }
+      }, [trackedDays, reflectionText]);
+
+      const dailyQuotes = [
+        {
+          text: "You have power over your mind—not outside events. Realize this, and you will find strength.",
+          author: "Marcus Aurelius",
+        },
+        {
+          text: "The impediment to action advances action. What stands in the way becomes the way.",
+          author: "Marcus Aurelius",
+        },
+        {
+          text: "Wealth consists not in having great possessions, but in having few wants.",
+          author: "Epictetus",
+        },
+        {
+          text: "Freedom is not procured by a full enjoyment of what is desired, but by controlling the desire.",
+          author: "Epictetus",
+        },
+        {
+          text: "Difficulty strengthens the soul; clarity weakens it.",
+          author: "Seneca",
+        },
+        {
+          text: "He suffers more than sorrow who has forgotten how to be content with a little.",
+          author: "Seneca",
+        },
+        {
+          text: "The chief task in life is simply this: to identify and separate matters so that I can say securely to myself which are externals not under my control, and which have to do with the choice I actually control.",
+          author: "Epictetus",
+        },
+        {
+          text: "You have power over your mind—not outside events. Realize this, and you will find strength.",
+          author: "Marcus Aurelius",
+        },
+      ];
+
+      const reflectionPrompts = [
+        "What happened today that was outside my control? How did I respond?",
+        "Where did I act with integrity today? Where could I have done better?",
+        "What desire or fear troubled me? How can I apply the dichotomy of control?",
+        "Did I treat others with fairness and kindness? What would a sage do?",
+        "What did I learn from adversity today?",
+        "Where did I find virtue in my actions today?",
+        "What external event bothered me? Could I have controlled my reaction better?",
+        "How did I practice discipline today? Where did I falter?",
+      ];
+
+      const dichotomyExercises = [
+        {
+          title: "Work Meeting Anxiety",
+          situation: "You have a presentation tomorrow and feel nervous.",
+          inControl: ["Preparation", "Effort", "Your attitude", "Your intentions"],
+          notInControl: ["Others' opinions", "Outcome", "Technical issues", "Others' mood"],
+          wisdom: "Prepare thoroughly, then release attachment to results. You control the effort, not the outcome.",
+        },
+        {
+          title: "Relationship Conflict",
+          situation: "Someone you care about is upset with you.",
+          inControl: ["Your honesty", "Your apology", "Your actions going forward", "Your patience"],
+          notInControl: ["Their forgiveness", "Their feelings", "Their timeline", "Their choice to stay"],
+          wisdom: "Do what's right with integrity. Their response is their responsibility, not yours.",
+        },
+        {
+          title: "Financial Setback",
+          situation: "An unexpected expense has depleted your savings.",
+          inControl: ["How you respond", "New budgeting", "Income growth", "Mindset"],
+          notInControl: ["The past", "Economic forces", "The expense itself", "Others' wealth"],
+          wisdom: "Money is indifferent. Your resilience and wisdom in response is where your power lies.",
+        },
+        {
+          title: "Health Concern",
+          situation: "You're dealing with an illness or health issue.",
+          inControl: ["Medical care pursued", "Your effort to heal", "Your attitude", "Your choices"],
+          notInControl: ["Diagnosis", "Recovery timeline", "Others' health", "Nature's course"],
+          wisdom: "Do what's in your power for health, then accept what remains. Virtue transcends illness.",
+        },
+        {
+          title: "Criticism Received",
+          situation: "Someone criticizes your work or ideas harshly.",
+          inControl: ["How you receive it", "Whether to learn from it", "Your response", "Your composure"],
+          notInControl: ["Their tone", "Their intentions", "Whether they're right", "Their opinion mattering"],
+          wisdom: "Criticism is material for growth. Separate the useful feedback from their emotion.",
+        },
+      ];
+
+      const teachings = [
+        {
+          id: "virtue",
+          title: "Virtue is the Only True Good",
+          content: "The stoics believed that virtue—wisdom, courage, justice, and temperance—is the highest good. External things like wealth, health, or reputation are indifferent. What matters is your character and choices.",
+          practices: ["Choose integrity over comfort", "Reflect on your values daily", "Ask: 'Is this virtuous?'"],
+        },
+        {
+          id: "control",
+          title: "The Dichotomy of Control",
+          content: "Some things are in your control (thoughts, effort, values, responses). Many are not (others' opinions, outcomes, health, death). Wisdom lies in focusing energy only on what you control and accepting what you don't.",
+          practices: ["Categorize your worries", "Release attachment to outcomes", "Master your reactions"],
+        },
+        {
+          id: "adversity",
+          title: "Adversity as Opportunity",
+          content: "Obstacles are not punishments—they're opportunities to practice virtue. Hardship reveals and strengthens character. A stoic views challenges as material for growth.",
+          practices: ["Reframe difficulties as tests", "Look for the lesson", "Practice gratitude for struggle"],
+        },
+        {
+          id: "desire",
+          title: "Freedom from Excessive Desire",
+          content: "Wanting more than you need creates suffering. The stoics practiced simple living and valued contentment. Freedom comes from needing less, not having more.",
+          practices: ["Practice voluntary discomfort", "Question every desire", "Cultivate gratitude for what you have"],
+        },
+        {
+          id: "acceptance",
+          title: "Amor Fati (Love of Fate)",
+          content: "Rather than merely tolerating what happens, embrace it. What occurs is part of the natural order. By accepting reality and finding meaning in it, you transform suffering into wisdom.",
+          practices: ["Say 'yes' to what happens", "Look for meaning in hardship", "Practice gratitude for all experiences"],
+        },
+      ];
+
+      const today = new Date().toDateString();
+      const isTrackedToday = trackedDays.includes(today);
+
+      const toggleTracking = () => {
+        if (isTrackedToday) {
+          setTrackedDays(trackedDays.filter(d => d !== today));
+        } else {
+          setTrackedDays([...trackedDays, today]);
+        }
+      };
+
+      const getTodayQuote = () => {
+        const seed = new Date().getDate();
+        return dailyQuotes[seed % dailyQuotes.length];
+      };
+
+      const getTodayPrompt = () => {
+        const seed = new Date().getDate();
+        return reflectionPrompts[seed % reflectionPrompts.length];
+      };
+
+      const getTodayExercise = () => {
+        const seed = new Date().getDate();
+        return dichotomyExercises[seed % dichotomyExercises.length];
+      };
+
+      const streakCount = (() => {
+        let count = 0;
+        let currentDate = new Date();
+        while (trackedDays.includes(currentDate.toDateString())) {
+          count++;
+          currentDate.setDate(currentDate.getDate() - 1);
+        }
+        return count;
+      })();
+
+      return (
+        <div style={{
+          background: '#0a0a0a',
+          color: '#f5f5f5',
+          minHeight: '100vh',
+          fontFamily: '"Crimson Text", serif',
+          display: 'flex',
+          flexDirection: 'column',
+        }}>
+          {/* Header */}
+          <div style={{
+            padding: '24px 16px',
+            background: 'linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%)',
+            borderBottom: '1px solid #2a2a2a',
+          }}>
+            <h1 style={{
+              margin: '0 0 8px 0',
+              fontSize: '32px',
+              fontWeight: 'normal',
+              letterSpacing: '2px',
+            }}>
+              VIRTUE
+            </h1>
+            <p style={{
+              margin: '0',
+              fontSize: '13px',
+              color: '#999',
+              letterSpacing: '1px',
+            }}>
+              Character Through Daily Practice
+            </p>
+          </div>
+
+          {/* Tabs */}
+          <div style={{
+            display: 'flex',
+            borderBottom: '1px solid #2a2a2a',
+            background: '#0a0a0a',
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
+          }}>
+            {[
+              { id: 'daily', label: 'Today', icon: '◯' },
+              { id: 'exercise', label: 'Control', icon: '◎' },
+              { id: 'library', label: 'Teachings', icon: '◇' },
+              { id: 'progress', label: 'Streak', icon: '✓' },
+            ].map(t => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                style={{
+                  flex: '0 0 auto',
+                  minWidth: '20%',
+                  padding: '14px 12px',
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: tab === t.id ? '2px solid #d4af37' : '2px solid transparent',
+                  color: tab === t.id ? '#d4af37' : '#666',
+                  fontSize: '11px',
+                  cursor: 'pointer',
+                  letterSpacing: '1px',
+                  transition: 'all 0.3s',
+                  fontFamily: 'inherit',
+                  WebkitTapHighlightColor: 'transparent',
+                  textAlign: 'center',
+                }}
+              >
+                <div style={{ fontSize: '16px', marginBottom: '4px' }}>{t.icon}</div>
+                <div>{t.label}</div>
+              </button>
+            ))}
+          </div>
+
+          {/* Content */}
+          <div style={{
+            padding: '24px 16px',
+            maxWidth: '600px',
+            margin: '0 auto',
+            width: '100%',
+            flex: 1,
+            overflowY: 'auto',
+            WebkitOverflowScrolling: 'touch',
+          }} className="fade-in">
+            {/* DAILY TAB */}
+            {tab === 'daily' && (
+              <div>
+                {/* Quote */}
+                <div style={{
+                  background: 'linear-gradient(135deg, #1a1a1a, #0d0d0d)',
+                  border: '1px solid #2a2a2a',
+                  padding: '28px',
+                  marginBottom: '24px',
+                  borderLeft: '3px solid #d4af37',
+                  borderRadius: '2px',
+                }}>
+                  <p style={{
+                    fontSize: '18px',
+                    fontStyle: 'italic',
+                    margin: '0 0 12px 0',
+                    lineHeight: '1.6',
+                  }}>
+                    "{getTodayQuote().text}"
+                  </p>
+                  <p style={{
+                    fontSize: '13px',
+                    color: '#999',
+                    margin: '0',
+                    letterSpacing: '1px',
+                  }}>
+                    — {getTodayQuote().author}
+                  </p>
+                </div>
+
+                {/* Reflection Prompt */}
+                <div style={{ marginBottom: '24px' }}>
+                  <h3 style={{
+                    fontSize: '14px',
+                    letterSpacing: '2px',
+                    color: '#d4af37',
+                    margin: '0 0 12px 0',
+                  }}>
+                    MORNING REFLECTION
+                  </h3>
+                  <p style={{
+                    fontSize: '13px',
+                    color: '#ccc',
+                    margin: '0 0 12px 0',
+                    lineHeight: '1.6',
+                  }}>
+                    {getTodayPrompt()}
+                  </p>
+                  <textarea
+                    value={reflectionText}
+                    onChange={(e) => setReflectionText(e.target.value)}
+                    placeholder="Write your thoughts here..."
+                    style={{
+                      width: '100%',
+                      minHeight: '120px',
+                      background: '#1a1a1a',
+                      border: '1px solid #2a2a2a',
+                      color: '#f5f5f5',
+                      padding: '12px',
+                      fontSize: '13px',
+                      fontFamily: 'inherit',
+                      borderRadius: '2px',
+                      resize: 'vertical',
+                      lineHeight: '1.6',
+                    }}
+                  />
+                </div>
+
+                {/* Track Button */}
+                <div
+                  onClick={toggleTracking}
+                  style={{
+                    width: '100%',
+                    padding: '14px',
+                    background: isTrackedToday ? '#d4af37' : '#2a2a2a',
+                    border: 'none',
+                    color: isTrackedToday ? '#0a0a0a' : '#d4af37',
+                    fontSize: '13px',
+                    letterSpacing: '1px',
+                    cursor: 'pointer',
+                    borderRadius: '2px',
+                    fontWeight: isTrackedToday ? 'bold' : 'normal',
+                    transition: 'all 0.3s',
+                    fontFamily: 'inherit',
+                    textAlign: 'center',
+                    WebkitTapHighlightColor: 'transparent',
+                  }}
+                  onTouchStart={(e) => e.target.style.opacity = '0.8'}
+                  onTouchEnd={(e) => e.target.style.opacity = '1'}
+                >
+                  {isTrackedToday ? '✓ PRACTICE LOGGED TODAY' : '+ LOG TODAY\'S PRACTICE'}
+                </div>
+              </div>
+            )}
+
+            {/* EXERCISE TAB */}
+            {tab === 'exercise' && (
+              <div>
+                <div style={{
+                  background: 'linear-gradient(135deg, #1a1a1a, #0d0d0d)',
+                  border: '1px solid #2a2a2a',
+                  padding: '24px',
+                  borderRadius: '2px',
+                }}>
+                  <h2 style={{ fontSize: '20px', margin: '0 0 8px 0' }}>
+                    {getTodayExercise().title}
+                  </h2>
+                  <p style={{
+                    fontSize: '13px',
+                    color: '#999',
+                    margin: '0 0 20px 0',
+                    fontStyle: 'italic',
+                  }}>
+                    {getTodayExercise().situation}
+                  </p>
+
+                  <div style={{ marginBottom: '20px' }}>
+                    <h4 style={{
+                      fontSize: '12px',
+                      letterSpacing: '2px',
+                      color: '#d4af37',
+                      margin: '0 0 12px 0',
+                    }}>
+                      IN YOUR CONTROL
+                    </h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {getTodayExercise().inControl.map((item, i) => (
+                        <div key={i} style={{
+                          background: '#0d0d0d',
+                          padding: '10px 12px',
+                          borderLeft: '2px solid #d4af37',
+                          fontSize: '13px',
+                        }}>
+                          ✓ {item}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: '20px' }}>
+                    <h4 style={{
+                      fontSize: '12px',
+                      letterSpacing: '2px',
+                      color: '#999',
+                      margin: '0 0 12px 0',
+                    }}>
+                      NOT IN YOUR CONTROL
+                    </h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {getTodayExercise().notInControl.map((item, i) => (
+                        <div key={i} style={{
+                          background: '#0d0d0d',
+                          padding: '10px 12px',
+                          borderLeft: '2px solid #666',
+                          fontSize: '13px',
+                          opacity: 0.7,
+                        }}>
+                          ✕ {item}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{
+                    background: '#0d0d0d',
+                    border: '1px solid #2a2a2a',
+                    padding: '16px',
+                    borderRadius: '2px',
+                    borderLeft: '2px solid #d4af37',
+                  }}>
+                    <p style={{
+                      fontSize: '13px',
+                      margin: '0',
+                      lineHeight: '1.6',
+                      fontStyle: 'italic',
+                    }}>
+                      {getTodayExercise().wisdom}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* LIBRARY TAB */}
+            {tab === 'library' && (
+              <div>
+                {selectedTeaching ? (
+                  <div>
+                    <div
+                      onClick={() => setSelectedTeaching(null)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#d4af37',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        marginBottom: '16px',
+                        letterSpacing: '1px',
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      ← BACK
+                    </div>
+                    <div style={{
+                      background: 'linear-gradient(135deg, #1a1a1a, #0d0d0d)',
+                      border: '1px solid #2a2a2a',
+                      padding: '24px',
+                      borderRadius: '2px',
+                    }}>
+                      <h2 style={{ fontSize: '22px', margin: '0 0 16px 0' }}>
+                        {selectedTeaching.title}
+                      </h2>
+                      <p style={{
+                        fontSize: '14px',
+                        lineHeight: '1.8',
+                        margin: '0 0 20px 0',
+                        color: '#ccc',
+                      }}>
+                        {selectedTeaching.content}
+                      </p>
+                      <h4 style={{
+                        fontSize: '12px',
+                        letterSpacing: '2px',
+                        color: '#d4af37',
+                        margin: '20px 0 12px 0',
+                      }}>
+                        DAILY PRACTICES
+                      </h4>
+                      <ul style={{ margin: '0', paddingLeft: '20px' }}>
+                        {selectedTeaching.practices.map((p, i) => (
+                          <li key={i} style={{
+                            fontSize: '13px',
+                            marginBottom: '8px',
+                            color: '#ccc',
+                            lineHeight: '1.6',
+                          }}>
+                            {p}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {teachings.map(teaching => (
+                      <div
+                        key={teaching.id}
+                        onClick={() => setSelectedTeaching(teaching)}
+                        style={{
+                          background: 'linear-gradient(135deg, #1a1a1a, #0d0d0d)',
+                          border: '1px solid #2a2a2a',
+                          padding: '16px',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          borderRadius: '2px',
+                          transition: 'all 0.3s',
+                          WebkitTapHighlightColor: 'transparent',
+                        }}
+                      >
+                        <h3 style={{
+                          fontSize: '14px',
+                          margin: '0 0 6px 0',
+                          color: '#d4af37',
+                        }}>
+                          {teaching.title}
+                        </h3>
+                        <p style={{
+                          fontSize: '12px',
+                          margin: '0',
+                          color: '#999',
+                        }}>
+                          {teaching.content.substring(0, 80)}...
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* STREAK TAB */}
+            {tab === 'progress' && (
+              <div style={{ textAlign: 'center' }}>
+                <div style={{
+                  background: 'linear-gradient(135deg, #1a1a1a, #0d0d0d)',
+                  border: '1px solid #2a2a2a',
+                  padding: '32px',
+                  borderRadius: '2px',
+                  marginBottom: '24px',
+                }}>
+                  <div style={{
+                    fontSize: '56px',
+                    color: '#d4af37',
+                    margin: '0 0 12px 0',
+                    fontWeight: 'bold',
+                  }}>
+                    {streakCount}
+                  </div>
+                  <p style={{
+                    fontSize: '14px',
+                    color: '#999',
+                    margin: '0',
+                    letterSpacing: '1px',
+                  }}>
+                    DAY STREAK
+                  </p>
+                </div>
+
+                <div style={{
+                  background: '#1a1a1a',
+                  border: '1px solid #2a2a2a',
+                  padding: '16px',
+                  borderRadius: '2px',
+                  textAlign: 'left',
+                }}>
+                  <h3 style={{
+                    fontSize: '13px',
+                    letterSpacing: '2px',
+                    color: '#d4af37',
+                    margin: '0 0 12px 0',
+                  }}>
+                    RECENT PRACTICE DAYS
+                  </h3>
+                  <p style={{
+                    fontSize: '12px',
+                    color: '#999',
+                    margin: '0',
+                    lineHeight: '1.8',
+                  }}>
+                    {trackedDays.length === 0 ? (
+                      'Start logging your daily practice to build your streak.'
+                    ) : (
+                      trackedDays.slice(-10).reverse().map((d, i) => (
+                        <span key={i}>
+                          {new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          {i < Math.min(9, trackedDays.length - 1) && ' • '}
+                        </span>
+                      ))
+                    )}
+                  </p>
+                </div>
+
+                <div style={{
+                  marginTop: '24px',
+                  fontSize: '13px',
+                  color: '#666',
+                  lineHeight: '1.8',
+                }}>
+                  <p>"The obstacle is the way. Each day you practice, you strengthen your character."</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<StoicismApp />);
+  </script>
+
+</body>
+</html>
