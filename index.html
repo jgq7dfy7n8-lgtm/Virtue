@@ -4,11 +4,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VIRTUE - Daily Practice</title>
+  <title>VIRTUE - The Stoic Journey</title>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital@0;1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital@0;1&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
@@ -32,8 +32,26 @@ body {
   to { opacity: 1; }
 }
 
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes glow {
+  0%, 100% { text-shadow: 0 0 10px rgba(212, 175, 55, 0.3); }
+  50% { text-shadow: 0 0 20px rgba(212, 175, 55, 0.6); }
+}
+
 .fade-in {
-  animation: fadeIn 0.5s ease-in;
+  animation: fadeIn 0.6s ease-in;
+}
+
+.slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
+.glow {
+  animation: glow 2s ease-in-out infinite;
 }
 ```
 
@@ -45,190 +63,265 @@ body {
   <script type="text/babel">
     const { useState, useEffect } = React;
 
-    function StoicismApp() {
-      const [tab, setTab] = useState('daily');
-      const [reflectionText, setReflectionText] = useState('');
-      const [trackedDays, setTrackedDays] = useState([]);
-      const [selectedTeaching, setSelectedTeaching] = useState(null);
-
-      // Load persisted data on mount
-      useEffect(() => {
+    function VirtueGame() {
+      const [gameState, setGameState] = useState(() => {
         try {
-          const saved = localStorage.getItem('stoicData');
-          if (saved) {
-            const data = JSON.parse(saved);
-            setTrackedDays(data.trackedDays || []);
-            setReflectionText(data.reflection || '');
-          }
-        } catch (e) {
-          console.log('Storage read error:', e);
+          const saved = localStorage.getItem('virtueGameState');
+          if (saved) return JSON.parse(saved);
+        } catch (e) {}
+        return {
+          chapter: 0,
+          xp: 0,
+          level: 1,
+          unlockedScrolls: [0],
+          completedChallenges: [],
+          currentChallenge: null,
+          streak: 0,
+          lastPlayDate: null,
+        };
+      });
+
+      useEffect(() => {
+        localStorage.setItem('virtueGameState', JSON.stringify(gameState));
+      }, [gameState]);
+
+      // Update streak
+      useEffect(() => {
+        const today = new Date().toDateString();
+        if (gameState.lastPlayDate !== today) {
+          const lastDate = gameState.lastPlayDate ? new Date(gameState.lastPlayDate) : new Date();
+          const currentDate = new Date();
+          const daysDiff = Math.floor((currentDate - lastDate) / (1000 * 60 * 60 * 24));
+          
+          const newStreak = daysDiff === 1 ? gameState.streak + 1 : (daysDiff === 0 ? gameState.streak : 1);
+          
+          setGameState(prev => ({
+            ...prev,
+            streak: newStreak,
+            lastPlayDate: today,
+          }));
         }
       }, []);
 
-      // Persist data
-      useEffect(() => {
-        try {
-          localStorage.setItem('stoicData', JSON.stringify({
-            trackedDays,
-            reflection: reflectionText,
+      const chapters = [
+        {
+          id: 0,
+          title: "The Student",
+          subtitle: "Learn What You Control",
+          description: "Begin your journey. Understand the dichotomy of control.",
+          scrolls: [
+            {
+              id: 0,
+              title: "The Dichotomy of Control",
+              wisdom: "Some things are in your control (thoughts, effort, values). Most things are not. Wisdom lies in knowing the difference.",
+              practice: "Identify one worry. Ask: Is this in my control? If not, release it.",
+            },
+          ],
+          challenges: [
+            {
+              id: 0,
+              title: "The Criticism Test",
+              scenario: "Someone criticizes your work harshly in public.",
+              choices: [
+                { text: "Get defensive and argue back", virtue: 0 },
+                { text: "Listen for truth, detach from emotion", virtue: 20 },
+                { text: "Ignore them completely", virtue: 5 },
+              ],
+            },
+            {
+              id: 1,
+              title: "The Setback",
+              scenario: "Your plans for the day fall apart unexpectedly.",
+              choices: [
+                { text: "Blame external circumstances", virtue: 0 },
+                { text: "Accept it and adapt your response", virtue: 20 },
+                { text: "Spend the day frustrated", virtue: 0 },
+              ],
+            },
+          ],
+        },
+        {
+          id: 1,
+          title: "The Practitioner",
+          subtitle: "Virtue Above All",
+          description: "Deepen your practice. Understand that virtue is the only true good.",
+          scrolls: [
+            {
+              id: 1,
+              title: "Virtue is the Only Good",
+              wisdom: "Wealth, health, reputation—these are indifferent. Only virtue (wisdom, courage, justice, temperance) is truly good.",
+              practice: "In each decision today, ask: What is the virtuous choice? Choose it, regardless of comfort.",
+            },
+          ],
+          challenges: [
+            {
+              id: 2,
+              title: "The Temptation",
+              scenario: "You could make easy money through a morally questionable shortcut.",
+              choices: [
+                { text: "Take it—money matters most", virtue: 0 },
+                { text: "Refuse it—virtue is priceless", virtue: 30 },
+                { text: "Hesitate and feel conflicted", virtue: 10 },
+              ],
+            },
+            {
+              id: 3,
+              title: "The Kindness Choice",
+              scenario: "Someone needs help, but it's inconvenient for you.",
+              choices: [
+                { text: "Help them without hesitation", virtue: 30 },
+                { text: "Help reluctantly", virtue: 15 },
+                { text: "Decline and move on", virtue: 0 },
+              ],
+            },
+          ],
+        },
+        {
+          id: 2,
+          title: "The Warrior",
+          subtitle: "Adversity as Fuel",
+          description: "Master hardship. See obstacles as opportunities to strengthen character.",
+          scrolls: [
+            {
+              id: 2,
+              title: "The Obstacle is the Way",
+              wisdom: "What stands in the way becomes the way. Adversity is not punishment—it's material for growth and virtue.",
+              practice: "Face one difficult task today without complaint. Let it reveal your strength.",
+            },
+          ],
+          challenges: [
+            {
+              id: 4,
+              title: "The Failure",
+              scenario: "Something you worked hard on fails completely.",
+              choices: [
+                { text: "Give up—it's hopeless", virtue: 0 },
+                { text: "Learn from it and try again with wisdom", virtue: 30 },
+                { text: "Blame others", virtue: 0 },
+              ],
+            },
+            {
+              id: 5,
+              title: "The Discipline Test",
+              scenario: "You're exhausted and want to skip your practice.",
+              choices: [
+                { text: "Skip it—rest is more important", virtue: 0 },
+                { text: "Do it anyway—discipline strengthens you", virtue: 30 },
+                { text: "Do a half-hearted version", virtue: 10 },
+              ],
+            },
+          ],
+        },
+        {
+          id: 3,
+          title: "The Sage",
+          subtitle: "Freedom from Desire",
+          description: "Transcend wanting. Find freedom in needing less, not having more.",
+          scrolls: [
+            {
+              id: 3,
+              title: "The Freedom of Simplicity",
+              wisdom: "Wanting more than you need creates suffering. The sage is content with little and grateful for everything.",
+              practice: "Practice voluntary discomfort. Wear simple clothes, eat plain food. Notice your freedom.",
+            },
+          ],
+          challenges: [
+            {
+              id: 6,
+              title: "The Desire",
+              scenario: "Something luxurious you want is within reach, but unnecessary.",
+              choices: [
+                { text: "Buy it—you deserve it", virtue: 0 },
+                { text: "Enjoy the desire without acting on it", virtue: 30 },
+                { text: "Resent that you can't have it", virtue: 0 },
+              ],
+            },
+            {
+              id: 7,
+              title: "The Gratitude",
+              scenario: "You lose something valuable you relied on.",
+              choices: [
+                { text: "Feel victimized and bitter", virtue: 0 },
+                { text: "Be grateful for the time you had it", virtue: 30 },
+                { text: "Replace it immediately", virtue: 5 },
+              ],
+            },
+          ],
+        },
+        {
+          id: 4,
+          title: "The Master",
+          subtitle: "Love of Fate",
+          description: "Embrace reality. Transform suffering into meaning through acceptance.",
+          scrolls: [
+            {
+              id: 4,
+              title: "Amor Fati - Love of Fate",
+              wisdom: "Rather than tolerating what happens, embrace it. What occurs is part of the natural order. By accepting and finding meaning in it, you transform suffering into wisdom.",
+              practice: "Say 'yes' to what comes. Find the gift in every difficulty. This is mastery.",
+            },
+          ],
+          challenges: [
+            {
+              id: 8,
+              title: "The Loss",
+              scenario: "Something precious is taken from you—health, a relationship, or security.",
+              choices: [
+                { text: "Despair—life is unfair", virtue: 0 },
+                { text: "Accept it as part of life and find meaning", virtue: 40 },
+                { text: "Numb yourself to the pain", virtue: 5 },
+              ],
+            },
+            {
+              id: 9,
+              title: "The Acceptance",
+              scenario: "You face an unchangeable difficult reality.",
+              choices: [
+                { text: "Resist and fight against reality", virtue: 0 },
+                { text: "Accept and find peace in surrender", virtue: 40 },
+                { text: "Pretend it doesn't affect you", virtue: 10 },
+              ],
+            },
+          ],
+        },
+      ];
+
+      const currentChapter = chapters[gameState.chapter];
+      const nextChapterReady = gameState.xp >= (gameState.chapter + 1) * 100;
+
+      const completeChallenge = (challengeId, virtueGain) => {
+        if (!gameState.completedChallenges.includes(challengeId)) {
+          const newXp = gameState.xp + virtueGain;
+          const newLevel = Math.floor(newXp / 100) + 1;
+          
+          setGameState(prev => ({
+            ...prev,
+            xp: newXp,
+            level: newLevel,
+            completedChallenges: [...prev.completedChallenges, challengeId],
+            currentChallenge: null,
           }));
-        } catch (e) {
-          console.log('Storage write error:', e);
-        }
-      }, [trackedDays, reflectionText]);
 
-      const dailyQuotes = [
-        {
-          text: "You have power over your mind—not outside events. Realize this, and you will find strength.",
-          author: "Marcus Aurelius",
-        },
-        {
-          text: "The impediment to action advances action. What stands in the way becomes the way.",
-          author: "Marcus Aurelius",
-        },
-        {
-          text: "Wealth consists not in having great possessions, but in having few wants.",
-          author: "Epictetus",
-        },
-        {
-          text: "Freedom is not procured by a full enjoyment of what is desired, but by controlling the desire.",
-          author: "Epictetus",
-        },
-        {
-          text: "Difficulty strengthens the soul; clarity weakens it.",
-          author: "Seneca",
-        },
-        {
-          text: "He suffers more than sorrow who has forgotten how to be content with a little.",
-          author: "Seneca",
-        },
-        {
-          text: "The chief task in life is simply this: to identify and separate matters so that I can say securely to myself which are externals not under my control, and which have to do with the choice I actually control.",
-          author: "Epictetus",
-        },
-        {
-          text: "You have power over your mind—not outside events. Realize this, and you will find strength.",
-          author: "Marcus Aurelius",
-        },
-      ];
-
-      const reflectionPrompts = [
-        "What happened today that was outside my control? How did I respond?",
-        "Where did I act with integrity today? Where could I have done better?",
-        "What desire or fear troubled me? How can I apply the dichotomy of control?",
-        "Did I treat others with fairness and kindness? What would a sage do?",
-        "What did I learn from adversity today?",
-        "Where did I find virtue in my actions today?",
-        "What external event bothered me? Could I have controlled my reaction better?",
-        "How did I practice discipline today? Where did I falter?",
-      ];
-
-      const dichotomyExercises = [
-        {
-          title: "Work Meeting Anxiety",
-          situation: "You have a presentation tomorrow and feel nervous.",
-          inControl: ["Preparation", "Effort", "Your attitude", "Your intentions"],
-          notInControl: ["Others' opinions", "Outcome", "Technical issues", "Others' mood"],
-          wisdom: "Prepare thoroughly, then release attachment to results. You control the effort, not the outcome.",
-        },
-        {
-          title: "Relationship Conflict",
-          situation: "Someone you care about is upset with you.",
-          inControl: ["Your honesty", "Your apology", "Your actions going forward", "Your patience"],
-          notInControl: ["Their forgiveness", "Their feelings", "Their timeline", "Their choice to stay"],
-          wisdom: "Do what's right with integrity. Their response is their responsibility, not yours.",
-        },
-        {
-          title: "Financial Setback",
-          situation: "An unexpected expense has depleted your savings.",
-          inControl: ["How you respond", "New budgeting", "Income growth", "Mindset"],
-          notInControl: ["The past", "Economic forces", "The expense itself", "Others' wealth"],
-          wisdom: "Money is indifferent. Your resilience and wisdom in response is where your power lies.",
-        },
-        {
-          title: "Health Concern",
-          situation: "You're dealing with an illness or health issue.",
-          inControl: ["Medical care pursued", "Your effort to heal", "Your attitude", "Your choices"],
-          notInControl: ["Diagnosis", "Recovery timeline", "Others' health", "Nature's course"],
-          wisdom: "Do what's in your power for health, then accept what remains. Virtue transcends illness.",
-        },
-        {
-          title: "Criticism Received",
-          situation: "Someone criticizes your work or ideas harshly.",
-          inControl: ["How you receive it", "Whether to learn from it", "Your response", "Your composure"],
-          notInControl: ["Their tone", "Their intentions", "Whether they're right", "Their opinion mattering"],
-          wisdom: "Criticism is material for growth. Separate the useful feedback from their emotion.",
-        },
-      ];
-
-      const teachings = [
-        {
-          id: "virtue",
-          title: "Virtue is the Only True Good",
-          content: "The stoics believed that virtue—wisdom, courage, justice, and temperance—is the highest good. External things like wealth, health, or reputation are indifferent. What matters is your character and choices.",
-          practices: ["Choose integrity over comfort", "Reflect on your values daily", "Ask: 'Is this virtuous?'"],
-        },
-        {
-          id: "control",
-          title: "The Dichotomy of Control",
-          content: "Some things are in your control (thoughts, effort, values, responses). Many are not (others' opinions, outcomes, health, death). Wisdom lies in focusing energy only on what you control and accepting what you don't.",
-          practices: ["Categorize your worries", "Release attachment to outcomes", "Master your reactions"],
-        },
-        {
-          id: "adversity",
-          title: "Adversity as Opportunity",
-          content: "Obstacles are not punishments—they're opportunities to practice virtue. Hardship reveals and strengthens character. A stoic views challenges as material for growth.",
-          practices: ["Reframe difficulties as tests", "Look for the lesson", "Practice gratitude for struggle"],
-        },
-        {
-          id: "desire",
-          title: "Freedom from Excessive Desire",
-          content: "Wanting more than you need creates suffering. The stoics practiced simple living and valued contentment. Freedom comes from needing less, not having more.",
-          practices: ["Practice voluntary discomfort", "Question every desire", "Cultivate gratitude for what you have"],
-        },
-        {
-          id: "acceptance",
-          title: "Amor Fati (Love of Fate)",
-          content: "Rather than merely tolerating what happens, embrace it. What occurs is part of the natural order. By accepting reality and finding meaning in it, you transform suffering into wisdom.",
-          practices: ["Say 'yes' to what happens", "Look for meaning in hardship", "Practice gratitude for all experiences"],
-        },
-      ];
-
-      const today = new Date().toDateString();
-      const isTrackedToday = trackedDays.includes(today);
-
-      const toggleTracking = () => {
-        if (isTrackedToday) {
-          setTrackedDays(trackedDays.filter(d => d !== today));
-        } else {
-          setTrackedDays([...trackedDays, today]);
+          // Auto-unlock next chapter
+          if (newLevel > gameState.chapter && gameState.chapter < 4) {
+            setGameState(prev => ({
+              ...prev,
+              chapter: prev.chapter + 1,
+            }));
+          }
         }
       };
 
-      const getTodayQuote = () => {
-        const seed = new Date().getDate();
-        return dailyQuotes[seed % dailyQuotes.length];
-      };
-
-      const getTodayPrompt = () => {
-        const seed = new Date().getDate();
-        return reflectionPrompts[seed % reflectionPrompts.length];
-      };
-
-      const getTodayExercise = () => {
-        const seed = new Date().getDate();
-        return dichotomyExercises[seed % dichotomyExercises.length];
-      };
-
-      const streakCount = (() => {
-        let count = 0;
-        let currentDate = new Date();
-        while (trackedDays.includes(currentDate.toDateString())) {
-          count++;
-          currentDate.setDate(currentDate.getDate() - 1);
+      const progressToNextChapter = () => {
+        if (nextChapterReady && gameState.chapter < 4) {
+          setGameState(prev => ({
+            ...prev,
+            chapter: prev.chapter + 1,
+          }));
         }
-        return count;
-      })();
+      };
+
+      const remainingXp = ((gameState.chapter + 1) * 100) - gameState.xp;
 
       return (
         <div style={{
@@ -239,71 +332,51 @@ body {
           display: 'flex',
           flexDirection: 'column',
         }}>
-          {/* Header */}
+          {/* Header with Progress */}
           <div style={{
-            padding: '24px 16px',
+            padding: '20px 16px',
             background: 'linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%)',
             borderBottom: '1px solid #2a2a2a',
           }}>
-            <h1 style={{
-              margin: '0 0 8px 0',
-              fontSize: '32px',
-              fontWeight: 'normal',
-              letterSpacing: '2px',
-            }}>
-              VIRTUE
-            </h1>
-            <p style={{
-              margin: '0',
-              fontSize: '13px',
-              color: '#999',
-              letterSpacing: '1px',
-            }}>
-              Character Through Daily Practice
-            </p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h1 style={{
+                margin: '0',
+                fontSize: '28px',
+                fontFamily: '"Cinzel", serif',
+                letterSpacing: '3px',
+                fontWeight: '600',
+              }}>
+                VIRTUE
+              </h1>
+              <div style={{ textAlign: 'right', fontSize: '12px', color: '#d4af37' }}>
+                <div style={{ letterSpacing: '1px' }}>LEVEL {gameState.level}</div>
+                <div style={{ color: '#999', fontSize: '11px' }}>🔥 {gameState.streak} day streak</div>
+              </div>
+            </div>
+
+            {/* XP Bar */}
+            <div style={{ marginBottom: '8px' }}>
+              <div style={{
+                background: '#0a0a0a',
+                border: '1px solid #2a2a2a',
+                height: '8px',
+                borderRadius: '4px',
+                overflow: 'hidden',
+              }}>
+                <div style={{
+                  background: 'linear-gradient(90deg, #d4af37, #f0d978)',
+                  width: `${((gameState.xp % 100) / 100) * 100}%`,
+                  height: '100%',
+                  transition: 'width 0.3s',
+                }}/>
+              </div>
+              <div style={{ fontSize: '11px', color: '#999', marginTop: '4px', letterSpacing: '0.5px' }}>
+                {gameState.xp % 100} / 100 XP {remainingXp > 0 && `· ${remainingXp} to next`}
+              </div>
+            </div>
           </div>
 
-          {/* Tabs */}
-          <div style={{
-            display: 'flex',
-            borderBottom: '1px solid #2a2a2a',
-            background: '#0a0a0a',
-            overflowX: 'auto',
-            WebkitOverflowScrolling: 'touch',
-          }}>
-            {[
-              { id: 'daily', label: 'Today', icon: '◯' },
-              { id: 'exercise', label: 'Control', icon: '◎' },
-              { id: 'library', label: 'Teachings', icon: '◇' },
-              { id: 'progress', label: 'Streak', icon: '✓' },
-            ].map(t => (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                style={{
-                  flex: '0 0 auto',
-                  minWidth: '20%',
-                  padding: '14px 12px',
-                  background: 'none',
-                  border: 'none',
-                  borderBottom: tab === t.id ? '2px solid #d4af37' : '2px solid transparent',
-                  color: tab === t.id ? '#d4af37' : '#666',
-                  fontSize: '11px',
-                  cursor: 'pointer',
-                  letterSpacing: '1px',
-                  transition: 'all 0.3s',
-                  fontFamily: 'inherit',
-                  WebkitTapHighlightColor: 'transparent',
-                  textAlign: 'center',
-                }}
-              >
-                <div style={{ fontSize: '16px', marginBottom: '4px' }}>{t.icon}</div>
-                <div>{t.label}</div>
-              </button>
-            ))}
-          </div>
-
-          {/* Content */}
+          {/* Main Content */}
           <div style={{
             padding: '24px 16px',
             maxWidth: '600px',
@@ -313,364 +386,301 @@ body {
             overflowY: 'auto',
             WebkitOverflowScrolling: 'touch',
           }} className="fade-in">
-            {/* DAILY TAB */}
-            {tab === 'daily' && (
-              <div>
-                {/* Quote */}
+
+            {gameState.currentChallenge !== null ? (
+              // Challenge Screen
+              <div className="slide-up">
                 <div style={{
                   background: 'linear-gradient(135deg, #1a1a1a, #0d0d0d)',
-                  border: '1px solid #2a2a2a',
-                  padding: '28px',
-                  marginBottom: '24px',
-                  borderLeft: '3px solid #d4af37',
-                  borderRadius: '2px',
-                }}>
-                  <p style={{
-                    fontSize: '18px',
-                    fontStyle: 'italic',
-                    margin: '0 0 12px 0',
-                    lineHeight: '1.6',
-                  }}>
-                    "{getTodayQuote().text}"
-                  </p>
-                  <p style={{
-                    fontSize: '13px',
-                    color: '#999',
-                    margin: '0',
-                    letterSpacing: '1px',
-                  }}>
-                    — {getTodayQuote().author}
-                  </p>
-                </div>
-
-                {/* Reflection Prompt */}
-                <div style={{ marginBottom: '24px' }}>
-                  <h3 style={{
-                    fontSize: '14px',
-                    letterSpacing: '2px',
-                    color: '#d4af37',
-                    margin: '0 0 12px 0',
-                  }}>
-                    MORNING REFLECTION
-                  </h3>
-                  <p style={{
-                    fontSize: '13px',
-                    color: '#ccc',
-                    margin: '0 0 12px 0',
-                    lineHeight: '1.6',
-                  }}>
-                    {getTodayPrompt()}
-                  </p>
-                  <textarea
-                    value={reflectionText}
-                    onChange={(e) => setReflectionText(e.target.value)}
-                    placeholder="Write your thoughts here..."
-                    style={{
-                      width: '100%',
-                      minHeight: '120px',
-                      background: '#1a1a1a',
-                      border: '1px solid #2a2a2a',
-                      color: '#f5f5f5',
-                      padding: '12px',
-                      fontSize: '13px',
-                      fontFamily: 'inherit',
-                      borderRadius: '2px',
-                      resize: 'vertical',
-                      lineHeight: '1.6',
-                    }}
-                  />
-                </div>
-
-                {/* Track Button */}
-                <div
-                  onClick={toggleTracking}
-                  style={{
-                    width: '100%',
-                    padding: '14px',
-                    background: isTrackedToday ? '#d4af37' : '#2a2a2a',
-                    border: 'none',
-                    color: isTrackedToday ? '#0a0a0a' : '#d4af37',
-                    fontSize: '13px',
-                    letterSpacing: '1px',
-                    cursor: 'pointer',
-                    borderRadius: '2px',
-                    fontWeight: isTrackedToday ? 'bold' : 'normal',
-                    transition: 'all 0.3s',
-                    fontFamily: 'inherit',
-                    textAlign: 'center',
-                    WebkitTapHighlightColor: 'transparent',
-                  }}
-                  onTouchStart={(e) => e.target.style.opacity = '0.8'}
-                  onTouchEnd={(e) => e.target.style.opacity = '1'}
-                >
-                  {isTrackedToday ? '✓ PRACTICE LOGGED TODAY' : '+ LOG TODAY\'S PRACTICE'}
-                </div>
-              </div>
-            )}
-
-            {/* EXERCISE TAB */}
-            {tab === 'exercise' && (
-              <div>
-                <div style={{
-                  background: 'linear-gradient(135deg, #1a1a1a, #0d0d0d)',
-                  border: '1px solid #2a2a2a',
+                  border: '2px solid #d4af37',
                   padding: '24px',
                   borderRadius: '2px',
+                  marginBottom: '20px',
                 }}>
-                  <h2 style={{ fontSize: '20px', margin: '0 0 8px 0' }}>
-                    {getTodayExercise().title}
+                  <h2 style={{
+                    fontSize: '20px',
+                    margin: '0 0 8px 0',
+                    color: '#d4af37',
+                  }}>
+                    ⚔ {currentChapter.challenges[gameState.currentChallenge].title}
                   </h2>
                   <p style={{
-                    fontSize: '13px',
-                    color: '#999',
+                    fontSize: '14px',
+                    color: '#ccc',
                     margin: '0 0 20px 0',
-                    fontStyle: 'italic',
+                    lineHeight: '1.6',
                   }}>
-                    {getTodayExercise().situation}
+                    {currentChapter.challenges[gameState.currentChallenge].scenario}
                   </p>
 
-                  <div style={{ marginBottom: '20px' }}>
-                    <h4 style={{
-                      fontSize: '12px',
-                      letterSpacing: '2px',
-                      color: '#d4af37',
-                      margin: '0 0 12px 0',
-                    }}>
-                      IN YOUR CONTROL
-                    </h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {getTodayExercise().inControl.map((item, i) => (
-                        <div key={i} style={{
-                          background: '#0d0d0d',
-                          padding: '10px 12px',
-                          borderLeft: '2px solid #d4af37',
-                          fontSize: '13px',
-                        }}>
-                          ✓ {item}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div style={{ marginBottom: '20px' }}>
-                    <h4 style={{
-                      fontSize: '12px',
-                      letterSpacing: '2px',
-                      color: '#999',
-                      margin: '0 0 12px 0',
-                    }}>
-                      NOT IN YOUR CONTROL
-                    </h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {getTodayExercise().notInControl.map((item, i) => (
-                        <div key={i} style={{
-                          background: '#0d0d0d',
-                          padding: '10px 12px',
-                          borderLeft: '2px solid #666',
-                          fontSize: '13px',
-                          opacity: 0.7,
-                        }}>
-                          ✕ {item}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div style={{
-                    background: '#0d0d0d',
-                    border: '1px solid #2a2a2a',
-                    padding: '16px',
-                    borderRadius: '2px',
-                    borderLeft: '2px solid #d4af37',
-                  }}>
-                    <p style={{
-                      fontSize: '13px',
-                      margin: '0',
-                      lineHeight: '1.6',
-                      fontStyle: 'italic',
-                    }}>
-                      {getTodayExercise().wisdom}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* LIBRARY TAB */}
-            {tab === 'library' && (
-              <div>
-                {selectedTeaching ? (
-                  <div>
-                    <div
-                      onClick={() => setSelectedTeaching(null)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#d4af37',
-                        cursor: 'pointer',
-                        fontSize: '12px',
-                        marginBottom: '16px',
-                        letterSpacing: '1px',
-                        fontFamily: 'inherit',
-                      }}
-                    >
-                      ← BACK
-                    </div>
-                    <div style={{
-                      background: 'linear-gradient(135deg, #1a1a1a, #0d0d0d)',
-                      border: '1px solid #2a2a2a',
-                      padding: '24px',
-                      borderRadius: '2px',
-                    }}>
-                      <h2 style={{ fontSize: '22px', margin: '0 0 16px 0' }}>
-                        {selectedTeaching.title}
-                      </h2>
-                      <p style={{
-                        fontSize: '14px',
-                        lineHeight: '1.8',
-                        margin: '0 0 20px 0',
-                        color: '#ccc',
-                      }}>
-                        {selectedTeaching.content}
-                      </p>
-                      <h4 style={{
-                        fontSize: '12px',
-                        letterSpacing: '2px',
-                        color: '#d4af37',
-                        margin: '20px 0 12px 0',
-                      }}>
-                        DAILY PRACTICES
-                      </h4>
-                      <ul style={{ margin: '0', paddingLeft: '20px' }}>
-                        {selectedTeaching.practices.map((p, i) => (
-                          <li key={i} style={{
-                            fontSize: '13px',
-                            marginBottom: '8px',
-                            color: '#ccc',
-                            lineHeight: '1.6',
-                          }}>
-                            {p}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {teachings.map(teaching => (
+                    {currentChapter.challenges[gameState.currentChallenge].choices.map((choice, idx) => (
                       <div
-                        key={teaching.id}
-                        onClick={() => setSelectedTeaching(teaching)}
+                        key={idx}
+                        onClick={() => completeChallenge(currentChapter.challenges[gameState.currentChallenge].id, choice.virtue)}
                         style={{
-                          background: 'linear-gradient(135deg, #1a1a1a, #0d0d0d)',
-                          border: '1px solid #2a2a2a',
+                          background: choice.virtue > 20 ? 'rgba(212, 175, 55, 0.1)' : '#0d0d0d',
+                          border: `1px solid ${choice.virtue > 20 ? '#d4af37' : '#2a2a2a'}`,
                           padding: '16px',
-                          textAlign: 'left',
-                          cursor: 'pointer',
                           borderRadius: '2px',
+                          cursor: 'pointer',
                           transition: 'all 0.3s',
                           WebkitTapHighlightColor: 'transparent',
                         }}
+                        onTouchStart={(e) => e.currentTarget.style.opacity = '0.8'}
+                        onTouchEnd={(e) => e.currentTarget.style.opacity = '1'}
                       >
-                        <h3 style={{
-                          fontSize: '14px',
-                          margin: '0 0 6px 0',
-                          color: '#d4af37',
-                        }}>
-                          {teaching.title}
-                        </h3>
-                        <p style={{
-                          fontSize: '12px',
-                          margin: '0',
-                          color: '#999',
-                        }}>
-                          {teaching.content.substring(0, 80)}...
-                        </p>
+                        <div style={{ fontSize: '13px', lineHeight: '1.6', marginBottom: '8px' }}>
+                          {choice.text}
+                        </div>
+                        {choice.virtue > 0 && (
+                          <div style={{ fontSize: '11px', color: '#d4af37', letterSpacing: '1px', fontWeight: 'bold' }}>
+                            +{choice.virtue} VIRTUE XP
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
-                )}
+                </div>
               </div>
-            )}
-
-            {/* STREAK TAB */}
-            {tab === 'progress' && (
-              <div style={{ textAlign: 'center' }}>
+            ) : (
+              // Chapter Screen
+              <>
+                {/* Chapter Header */}
                 <div style={{
-                  background: 'linear-gradient(135deg, #1a1a1a, #0d0d0d)',
-                  border: '1px solid #2a2a2a',
-                  padding: '32px',
-                  borderRadius: '2px',
-                  marginBottom: '24px',
+                  textAlign: 'center',
+                  marginBottom: '32px',
+                  paddingBottom: '20px',
+                  borderBottom: '1px solid #2a2a2a',
                 }}>
                   <div style={{
-                    fontSize: '56px',
-                    color: '#d4af37',
-                    margin: '0 0 12px 0',
-                    fontWeight: 'bold',
+                    fontSize: '48px',
+                    marginBottom: '12px',
                   }}>
-                    {streakCount}
+                    {gameState.chapter === 0 && '📖'}
+                    {gameState.chapter === 1 && '⚡'}
+                    {gameState.chapter === 2 && '⚔️'}
+                    {gameState.chapter === 3 && '🏆'}
+                    {gameState.chapter === 4 && '👑'}
                   </div>
-                  <p style={{
-                    fontSize: '14px',
-                    color: '#999',
-                    margin: '0',
-                    letterSpacing: '1px',
-                  }}>
-                    DAY STREAK
-                  </p>
-                </div>
-
-                <div style={{
-                  background: '#1a1a1a',
-                  border: '1px solid #2a2a2a',
-                  padding: '16px',
-                  borderRadius: '2px',
-                  textAlign: 'left',
-                }}>
-                  <h3 style={{
-                    fontSize: '13px',
+                  <h2 style={{
+                    fontSize: '24px',
+                    fontFamily: '"Cinzel", serif',
+                    margin: '0 0 4px 0',
                     letterSpacing: '2px',
-                    color: '#d4af37',
-                    margin: '0 0 12px 0',
                   }}>
-                    RECENT PRACTICE DAYS
-                  </h3>
+                    {currentChapter.title}
+                  </h2>
                   <p style={{
                     fontSize: '12px',
+                    color: '#d4af37',
+                    margin: '0 0 12px 0',
+                    letterSpacing: '1px',
+                  }}>
+                    {currentChapter.subtitle}
+                  </p>
+                  <p style={{
+                    fontSize: '13px',
                     color: '#999',
                     margin: '0',
-                    lineHeight: '1.8',
+                    lineHeight: '1.6',
                   }}>
-                    {trackedDays.length === 0 ? (
-                      'Start logging your daily practice to build your streak.'
-                    ) : (
-                      trackedDays.slice(-10).reverse().map((d, i) => (
-                        <span key={i}>
-                          {new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                          {i < Math.min(9, trackedDays.length - 1) && ' • '}
-                        </span>
-                      ))
-                    )}
+                    {currentChapter.description}
                   </p>
                 </div>
 
-                <div style={{
-                  marginTop: '24px',
-                  fontSize: '13px',
-                  color: '#666',
-                  lineHeight: '1.8',
-                }}>
-                  <p>"The obstacle is the way. Each day you practice, you strengthen your character."</p>
+                {/* Scrolls */}
+                <div style={{ marginBottom: '32px' }}>
+                  <h3 style={{
+                    fontSize: '12px',
+                    letterSpacing: '2px',
+                    color: '#d4af37',
+                    margin: '0 0 16px 0',
+                  }}>
+                    📜 SCROLL OF WISDOM
+                  </h3>
+                  {currentChapter.scrolls.map(scroll => (
+                    <div key={scroll.id} style={{
+                      background: 'linear-gradient(135deg, #1a1a1a, #0d0d0d)',
+                      border: '1px solid #2a2a2a',
+                      padding: '20px',
+                      borderRadius: '2px',
+                      borderLeft: '3px solid #d4af37',
+                    }}>
+                      <h4 style={{ fontSize: '14px', margin: '0 0 12px 0', color: '#d4af37' }}>
+                        {scroll.title}
+                      </h4>
+                      <p style={{
+                        fontSize: '13px',
+                        margin: '0 0 12px 0',
+                        lineHeight: '1.7',
+                        color: '#ccc',
+                        fontStyle: 'italic',
+                      }}>
+                        "{scroll.wisdom}"
+                      </p>
+                      <p style={{
+                        fontSize: '12px',
+                        margin: '0',
+                        color: '#999',
+                      }}>
+                        ✓ {scroll.practice}
+                      </p>
+                    </div>
+                  ))}
                 </div>
-              </div>
+
+                {/* Challenges */}
+                <div style={{ marginBottom: '32px' }}>
+                  <h3 style={{
+                    fontSize: '12px',
+                    letterSpacing: '2px',
+                    color: '#d4af37',
+                    margin: '0 0 16px 0',
+                  }}>
+                    ⚔ TRIALS & TESTS
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {currentChapter.challenges.map((challenge, idx) => {
+                      const isCompleted = gameState.completedChallenges.includes(challenge.id);
+                      return (
+                        <div
+                          key={challenge.id}
+                          onClick={() => !isCompleted && setGameState(prev => ({...prev, currentChallenge: idx}))}
+                          style={{
+                            background: isCompleted ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.05))' : 'linear-gradient(135deg, #1a1a1a, #0d0d0d)',
+                            border: `1px solid ${isCompleted ? '#d4af37' : '#2a2a2a'}`,
+                            padding: '16px',
+                            borderRadius: '2px',
+                            cursor: isCompleted ? 'default' : 'pointer',
+                            opacity: isCompleted ? 0.7 : 1,
+                            transition: 'all 0.3s',
+                            WebkitTapHighlightColor: 'transparent',
+                          }}
+                          onTouchStart={(e) => !isCompleted && (e.currentTarget.style.opacity = '0.8')}
+                          onTouchEnd={(e) => !isCompleted && (e.currentTarget.style.opacity = '1')}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                              <h4 style={{
+                                fontSize: '13px',
+                                margin: '0 0 4px 0',
+                                color: isCompleted ? '#d4af37' : '#f5f5f5',
+                              }}>
+                                {isCompleted ? '✓' : '○'} {challenge.title}
+                              </h4>
+                              <p style={{
+                                fontSize: '12px',
+                                margin: '0',
+                                color: '#999',
+                              }}>
+                                {challenge.scenario.substring(0, 60)}...
+                              </p>
+                            </div>
+                            {!isCompleted && (
+                              <div style={{
+                                fontSize: '11px',
+                                color: '#d4af37',
+                                letterSpacing: '0.5px',
+                                whiteSpace: 'nowrap',
+                                marginLeft: '8px',
+                              }}>
+                                START
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Chapter Progression */}
+                {gameState.chapter < 4 && (
+                  <div style={{
+                    background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.05))',
+                    border: '1px solid #2a2a2a',
+                    padding: '16px',
+                    borderRadius: '2px',
+                    textAlign: 'center',
+                  }}>
+                    <p style={{
+                      fontSize: '12px',
+                      color: '#999',
+                      margin: '0 0 12px 0',
+                    }}>
+                      {nextChapterReady ? (
+                        <span style={{ color: '#d4af37', fontWeight: 'bold' }}>Ready to ascend to the next chapter</span>
+                      ) : (
+                        <span>Complete {remainingXp} more XP to unlock the next chapter</span>
+                      )}
+                    </p>
+                    {nextChapterReady && (
+                      <div
+                        onClick={progressToNextChapter}
+                        style={{
+                          background: '#d4af37',
+                          color: '#0a0a0a',
+                          padding: '10px',
+                          borderRadius: '2px',
+                          fontSize: '12px',
+                          fontWeight: 'bold',
+                          cursor: 'pointer',
+                          letterSpacing: '1px',
+                          WebkitTapHighlightColor: 'transparent',
+                        }}
+                        onTouchStart={(e) => e.currentTarget.style.opacity = '0.8'}
+                        onTouchEnd={(e) => e.currentTarget.style.opacity = '1'}
+                      >
+                        ASCEND TO CHAPTER {gameState.chapter + 2}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {gameState.chapter === 4 && (
+                  <div style={{
+                    background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(212, 175, 55, 0.08))',
+                    border: '2px solid #d4af37',
+                    padding: '24px',
+                    borderRadius: '2px',
+                    textAlign: 'center',
+                  }} className="glow">
+                    <div style={{ fontSize: '40px', marginBottom: '12px' }}>👑</div>
+                    <h3 style={{
+                      fontSize: '18px',
+                      color: '#d4af37',
+                      margin: '0 0 12px 0',
+                      fontFamily: '"Cinzel", serif',
+                    }}>
+                      The Master Path Complete
+                    </h3>
+                    <p style={{
+                      fontSize: '12px',
+                      color: '#ccc',
+                      margin: '0 0 8px 0',
+                      lineHeight: '1.6',
+                    }}>
+                      You have journeyed through the five pillars of stoicism and emerged transformed. Continue your practice daily.
+                    </p>
+                    <p style={{
+                      fontSize: '11px',
+                      color: '#999',
+                      margin: '0',
+                      fontStyle: 'italic',
+                    }}>
+                      "The greatest wealth is a poverty of desires." — Seneca
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
       );
     }
 
-    ReactDOM.createRoot(document.getElementById('root')).render(<StoicismApp />);
+    ReactDOM.createRoot(document.getElementById('root')).render(<VirtueGame />);
   </script>
 
 </body>
